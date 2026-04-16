@@ -1,0 +1,1118 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>参数管理模块原型</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Microsoft YaHei', Arial, sans-serif;
+            background-color: #f5f7fa;
+            color: #333;
+        }
+        
+        .container {
+            display: flex;
+            min-height: 100vh;
+        }
+        
+        /* 左侧菜单 */
+        .sidebar {
+            width: 240px;
+            background-color: #304156;
+            color: #fff;
+            overflow-y: auto;
+        }
+        
+        .sidebar-header {
+            padding: 20px;
+            font-size: 18px;
+            font-weight: bold;
+            border-bottom: 1px solid #434a59;
+        }
+        
+        .menu-item {
+            padding: 12px 20px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        
+        .menu-item:hover {
+            background-color: #263445;
+        }
+        
+        .menu-item.active {
+            background-color: #409eff;
+        }
+        
+        .menu-item.level-2 {
+            padding-left: 40px;
+            font-size: 14px;
+        }
+        
+        /* 右侧内容区 */
+        .content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        
+        .content-header {
+            padding: 16px 24px;
+            background-color: #fff;
+            border-bottom: 1px solid #e4e7ed;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .breadcrumb {
+            font-size: 14px;
+            color: #909399;
+        }
+        
+        .breadcrumb span {
+            margin: 0 4px;
+        }
+        
+        .breadcrumb .current {
+            color: #303133;
+        }
+        
+        .content-body {
+            flex: 1;
+            padding: 24px;
+            overflow-y: auto;
+        }
+        
+        /* 按钮样式 */
+        .btn {
+            height: 36px;
+            padding: 0 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background-color 0.2s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .btn-primary {
+            background-color: #409eff;
+            color: #fff;
+        }
+        
+        .btn-primary:hover {
+            background-color: #66b1ff;
+        }
+        
+        .btn-danger {
+            background-color: #f56c6c;
+            color: #fff;
+        }
+        
+        .btn-danger:hover {
+            background-color: #f78989;
+        }
+        
+        .btn-default {
+            background-color: #fff;
+            color: #606266;
+            border: 1px solid #dcdfe6;
+        }
+        
+        .btn-default:hover {
+            background-color: #ecf5ff;
+        }
+        
+        .btn-link {
+            background-color: transparent;
+            color: #409eff;
+            border: none;
+            padding: 0 8px;
+        }
+        
+        .btn-link:hover {
+            color: #66b1ff;
+        }
+        
+        /* 筛选区域 */
+        .filter-section {
+            background-color: #fff;
+            border-radius: 4px;
+            box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            margin-bottom: 16px;
+        }
+        
+        .filter-title {
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 16px;
+        }
+        
+        .filter-form {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+        }
+        
+        .form-item {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .form-label {
+            font-size: 14px;
+            font-weight: 500;
+            margin-bottom: 8px;
+            color: #606266;
+        }
+        
+        .form-input {
+            height: 36px;
+            padding: 0 12px;
+            border: 1px solid #dcdfe6;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        
+        .form-select {
+            height: 36px;
+            padding: 0 12px;
+            border: 1px solid #dcdfe6;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        
+        .filter-actions {
+            grid-column: 1 / -1;
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+            margin-top: 16px;
+        }
+        
+        /* 表格样式 */
+        .table-section {
+            background-color: #fff;
+            border-radius: 4px;
+            box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+        
+        .table-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid #e4e7ed;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .table-title {
+            font-size: 16px;
+            font-weight: bold;
+        }
+        
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        .table th {
+            background-color: #f5f7fa;
+            color: #909399;
+            font-weight: 500;
+            text-align: left;
+            padding: 12px 20px;
+            font-size: 14px;
+            border-bottom: 1px solid #e4e7ed;
+        }
+        
+        .table td {
+            padding: 12px 20px;
+            border-bottom: 1px solid #e4e7ed;
+            font-size: 14px;
+        }
+        
+        .table tr:hover {
+            background-color: #f5f7fa;
+        }
+        
+        .status-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+        
+        .status-enabled {
+            background-color: #f0f9ff;
+            color: #409eff;
+        }
+        
+        .status-disabled {
+            background-color: #fef0f0;
+            color: #f56c6c;
+        }
+        
+        /* 标签样式 */
+        .tag {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            margin-right: 4px;
+            margin-bottom: 4px;
+        }
+        
+        .tag-blue {
+            background-color: #e3f2fd;
+            color: #1976d2;
+        }
+        
+        .tag-green {
+            background-color: #e8f5e9;
+            color: #388e3c;
+        }
+        
+        .tag-orange {
+            background-color: #fff3e0;
+            color: #e65100;
+        }
+        
+        /* 分页 */
+        .pagination {
+            padding: 16px 20px;
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .page-btn {
+            width: 32px;
+            height: 32px;
+            border: 1px solid #dcdfe6;
+            background-color: #fff;
+            border-radius: 4px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+        }
+        
+        .page-btn:hover {
+            background-color: #f5f7fa;
+        }
+        
+        .page-btn.active {
+            background-color: #409eff;
+            color: #fff;
+            border-color: #409eff;
+        }
+        
+        .page-info {
+            margin-left: 16px;
+            font-size: 14px;
+            color: #606266;
+        }
+        
+        /* 模态框 */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+        
+        .modal-content {
+            background-color: #fff;
+            border-radius: 4px;
+            box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+            width: 600px;
+            max-width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        
+        .modal-header {
+            padding: 20px;
+            border-bottom: 1px solid #e4e7ed;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .modal-title {
+            font-size: 18px;
+            font-weight: bold;
+        }
+        
+        .modal-close {
+            font-size: 24px;
+            cursor: pointer;
+            color: #909399;
+        }
+        
+        .modal-body {
+            padding: 20px;
+        }
+        
+        .modal-footer {
+            padding: 16px 20px;
+            border-top: 1px solid #e4e7ed;
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+        }
+        
+        /* 提示信息 */
+        .alert {
+            padding: 12px 16px;
+            border-radius: 4px;
+            margin-bottom: 16px;
+        }
+        
+        .alert-info {
+            background-color: #e3f2fd;
+            color: #1976d2;
+            border-left: 4px solid #2196f3;
+        }
+        
+        .alert-warning {
+            background-color: #fff3e0;
+            color: #e65100;
+            border-left: 4px solid #ff9800;
+        }
+        
+        .alert-danger {
+            background-color: #ffebee;
+            color: #c62828;
+            border-left: 4px solid #f44336;
+        }
+        
+        /* 隐藏/显示页面 */
+        .page {
+            display: none;
+        }
+        
+        .page.active {
+            display: block;
+        }
+        
+        /* 返回按钮 */
+        .back-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            color: #606266;
+            cursor: pointer;
+            font-size: 14px;
+            margin-bottom: 16px;
+        }
+        
+        .back-btn:hover {
+            color: #409eff;
+        }
+        
+        /* 引用检查结果 */
+        .ref-check-result {
+            margin-top: 16px;
+            padding: 12px;
+            background-color: #f8f9fa;
+            border-radius: 4px;
+            border-left: 4px solid #409eff;
+        }
+        
+        .ref-check-title {
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+        
+        .ref-item {
+            padding: 8px 0;
+            border-bottom: 1px solid #e9ecef;
+        }
+        
+        .ref-item:last-child {
+            border-bottom: none;
+        }
+        
+        .ref-module {
+            font-weight: 500;
+        }
+        
+        .ref-desc {
+            color: #6c757d;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- 左侧菜单 -->
+        <div class="sidebar">
+            <div class="sidebar-header">综合对账平台</div>
+            <div class="menu-item active">配置中心</div>
+            <div class="menu-item level-2 active">参数管理</div>
+        </div>
+        
+        <!-- 右侧内容区 -->
+        <div class="content">
+            <div class="content-header">
+                <div class="breadcrumb">
+                    配置中心 <span>&gt;</span> <span class="current">参数管理</span>
+                </div>
+            </div>
+            
+            <div class="content-body">
+                <!-- 一级参数管理页面 -->
+                <div id="level1Page" class="page active">
+                    <!-- 筛选区域 -->
+                    <div class="filter-section">
+                        <div class="filter-title">筛选条件</div>
+                        <div class="filter-form">
+                            <div class="form-item">
+                                <label class="form-label">一级参数名称</label>
+                                <input type="text" class="form-input" placeholder="请输入一级参数名称">
+                            </div>
+                            <div class="form-item">
+                                <label class="form-label">参数编码</label>
+                                <input type="text" class="form-input" placeholder="请输入参数编码">
+                            </div>
+                            <div class="form-item">
+                                <label class="form-label">参数码值</label>
+                                <input type="text" class="form-input" placeholder="请输入参数码值">
+                            </div>
+                            <div class="form-item">
+                                <label class="form-label">状态</label>
+                                <select class="form-select">
+                                    <option value="">全部</option>
+                                    <option value="enabled">启用</option>
+                                    <option value="disabled">禁用</option>
+                                </select>
+                            </div>
+                            <div class="form-item">
+                                <label class="form-label">标签</label>
+                                <input type="text" class="form-input" placeholder="请输入标签">
+                            </div>
+                            <div class="filter-actions">
+                                <button class="btn btn-default">重置</button>
+                                <button class="btn btn-primary">查询</button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 表格区域 -->
+                    <div class="table-section">
+                        <div class="table-header">
+                            <div class="table-title">一级参数列表</div>
+                            <button class="btn btn-primary" onclick="openAddLevel1Modal()">新增一级参数</button>
+                        </div>
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>一级参数名称</th>
+                                    <th>参数编码</th>
+                                    <th>参数码值</th>
+                                    <th>状态</th>
+                                    <th>描述</th>
+                                    <th>标签</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>系统配置</td>
+                                    <td>SYSTEM_CONFIG</td>
+                                    <td>1001</td>
+                                    <td><span class="status-badge status-enabled">启用</span></td>
+                                    <td>系统相关配置参数</td>
+                                    <td>
+                                        <span class="tag tag-blue">系统</span>
+                                    </td>
+                                    <td>
+                                        <button class="btn btn-link" onclick="openEditLevel1Modal()">编辑</button>
+                                        <button class="btn btn-link" onclick="checkLevel1Reference()">删除</button>
+                                        <button class="btn btn-link" onclick="showLevel2Page()">查看二级参数详情</button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>对账配置</td>
+                                    <td>RECONCILIATION_CONFIG</td>
+                                    <td>1002</td>
+                                    <td><span class="status-badge status-enabled">启用</span></td>
+                                    <td>对账任务相关配置</td>
+                                    <td>
+                                        <span class="tag tag-green">对账</span>
+                                    </td>
+                                    <td>
+                                        <button class="btn btn-link">编辑</button>
+                                        <button class="btn btn-link">删除</button>
+                                        <button class="btn btn-link">查看二级参数详情</button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>业务规则</td>
+                                    <td>BUSINESS_RULE</td>
+                                    <td>1003</td>
+                                    <td><span class="status-badge status-disabled">禁用</span></td>
+                                    <td>业务逻辑相关规则</td>
+                                    <td>
+                                        <span class="tag tag-orange">规则</span>
+                                    </td>
+                                    <td>
+                                        <button class="btn btn-link">编辑</button>
+                                        <button class="btn btn-link">删除</button>
+                                        <button class="btn btn-link">查看二级参数详情</button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>通知配置</td>
+                                    <td>NOTIFICATION_CONFIG</td>
+                                    <td>1004</td>
+                                    <td><span class="status-badge status-enabled">启用</span></td>
+                                    <td>系统通知相关配置</td>
+                                    <td>
+                                        <span class="tag tag-blue">系统</span>
+                                        <span class="tag tag-green">通知</span>
+                                    </td>
+                                    <td>
+                                        <button class="btn btn-link">编辑</button>
+                                        <button class="btn btn-link">删除</button>
+                                        <button class="btn btn-link">查看二级参数详情</button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <div class="pagination">
+                            <div style="display: flex; align-items: center; margin-right: 16px;">
+                                <span style="margin-right: 8px;">每页显示：</span>
+                                <select class="form-select" style="width: 80px; height: 32px;">
+                                    <option value="10">10条</option>
+                                    <option value="20" selected>20条</option>
+                                    <option value="50">50条</option>
+                                    <option value="100">100条</option>
+                                </select>
+                            </div>
+                            <button class="page-btn">&lt;</button>
+                            <button class="page-btn active">1</button>
+                            <button class="page-btn">2</button>
+                            <button class="page-btn">3</button>
+                            <button class="page-btn">&gt;</button>
+                            <span class="page-info">共 12 条</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 二级参数详情页面 -->
+                <div id="level2Page" class="page">
+                    <div class="back-btn" onclick="showLevel1Page()">
+                        &lt; 返回一级参数列表
+                    </div>
+                    
+                    <!-- 一级参数信息展示 -->
+                    <div class="filter-section">
+                        <div class="filter-title">关联一级参数信息</div>
+                        <div class="filter-form">
+                            <div class="form-item">
+                                <label class="form-label">关联一级参数名称</label>
+                                <input type="text" class="form-input" value="系统配置" disabled>
+                            </div>
+                            <div class="form-item">
+                                <label class="form-label">关联一级参数编码</label>
+                                <input type="text" class="form-input" value="SYSTEM_CONFIG" disabled>
+                            </div>
+                            <div class="form-item">
+                                <label class="form-label">关联一级参数码值</label>
+                                <input type="text" class="form-input" value="1001" disabled>
+                            </div>
+                            <div class="form-item">
+                                <label class="form-label">状态</label>
+                                <input type="text" class="form-input" value="启用" disabled>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 二级参数筛选区域 -->
+                    <div class="filter-section">
+                        <div class="filter-title">二级参数筛选</div>
+                        <div class="filter-form">
+                            <div class="form-item">
+                                <label class="form-label">二级参数名称</label>
+                                <input type="text" class="form-input" placeholder="请输入二级参数名称">
+                            </div>
+                            <div class="form-item">
+                                <label class="form-label">参数编码</label>
+                                <input type="text" class="form-input" placeholder="请输入参数编码">
+                            </div>
+                            <div class="form-item">
+                                <label class="form-label">参数码值</label>
+                                <input type="text" class="form-input" placeholder="请输入参数码值">
+                            </div>
+                            <div class="form-item">
+                                <label class="form-label">状态</label>
+                                <select class="form-select">
+                                    <option value="">全部</option>
+                                    <option value="enabled">启用</option>
+                                    <option value="disabled">禁用</option>
+                                </select>
+                            </div>
+                            <div class="form-item">
+                                <label class="form-label">标签</label>
+                                <input type="text" class="form-input" placeholder="请输入标签">
+                            </div>
+                            <div class="filter-actions">
+                                <button class="btn btn-default">重置</button>
+                                <button class="btn btn-primary">查询</button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 二级参数表格区域 -->
+                    <div class="table-section">
+                        <div class="table-header">
+                            <div class="table-title">二级参数列表</div>
+                            <button class="btn btn-primary" onclick="openAddLevel2Modal()">新增二级参数</button>
+                        </div>
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>二级参数名称</th>
+                                    <th>参数编码</th>
+                                    <th>参数码值</th>
+                                    <th>状态</th>
+                                    <th>描述</th>
+                                    <th>标签</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>系统名称</td>
+                                    <td>SYSTEM_NAME</td>
+                                    <td>100101</td>
+                                    <td><span class="status-badge status-enabled">启用</span></td>
+                                    <td>系统显示名称</td>
+                                    <td>
+                                        <span class="tag tag-blue">系统</span>
+                                        <span class="tag tag-green">基础</span>
+                                    </td>
+                                    <td>
+                                        <button class="btn btn-link" onclick="openEditLevel2Modal()">编辑</button>
+                                        <button class="btn btn-link" onclick="checkLevel2Reference()">删除</button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>系统版本</td>
+                                    <td>SYSTEM_VERSION</td>
+                                    <td>100102</td>
+                                    <td><span class="status-badge status-enabled">启用</span></td>
+                                    <td>系统当前版本号</td>
+                                    <td>
+                                        <span class="tag tag-blue">系统</span>
+                                        <span class="tag tag-orange">版本</span>
+                                    </td>
+                                    <td>
+                                        <button class="btn btn-link" onclick="openEditLevel2Modal()">编辑</button>
+                                        <button class="btn btn-link" onclick="checkLevel2Reference()">删除</button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>日志级别</td>
+                                    <td>LOG_LEVEL</td>
+                                    <td>100103</td>
+                                    <td><span class="status-badge status-enabled">启用</span></td>
+                                    <td>系统日志记录级别</td>
+                                    <td>
+                                        <span class="tag tag-blue">系统</span>
+                                        <span class="tag tag-green">日志</span>
+                                    </td>
+                                    <td>
+                                        <button class="btn btn-link" onclick="openEditLevel2Modal()">编辑</button>
+                                        <button class="btn btn-link" onclick="checkLevel2Reference()">删除</button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>数据备份周期</td>
+                                    <td>BACKUP_CYCLE</td>
+                                    <td>100104</td>
+                                    <td><span class="status-badge status-disabled">禁用</span></td>
+                                    <td>系统数据备份频率</td>
+                                    <td>
+                                        <span class="tag tag-blue">系统</span>
+                                        <span class="tag tag-green">备份</span>
+                                    </td>
+                                    <td>
+                                        <button class="btn btn-link" onclick="openEditLevel2Modal()">编辑</button>
+                                        <button class="btn btn-link" onclick="checkLevel2Reference()">删除</button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <div class="pagination">
+                            <div style="display: flex; align-items: center; margin-right: 16px;">
+                                <span style="margin-right: 8px;">每页显示：</span>
+                                <select class="form-select" style="width: 80px; height: 32px;">
+                                    <option value="10">10条</option>
+                                    <option value="20" selected>20条</option>
+                                    <option value="50">50条</option>
+                                    <option value="100">100条</option>
+                                </select>
+                            </div>
+                            <button class="page-btn">&lt;</button>
+                            <button class="page-btn active">1</button>
+                            <button class="page-btn">2</button>
+                            <button class="page-btn">&gt;</button>
+                            <span class="page-info">共 8 条</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 新增一级参数模态框 -->
+    <div id="addLevel1Modal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">新增一级参数</div>
+                <div class="modal-close" onclick="closeAddLevel1Modal()">&times;</div>
+            </div>
+            <div class="modal-body">
+                <div class="filter-form">
+                    <div class="form-item">
+                        <label class="form-label">一级参数名称 <span style="color: red;">*</span></label>
+                        <input type="text" class="form-input" placeholder="请输入一级参数名称" required>
+                    </div>
+                    <div class="form-item">
+                        <label class="form-label">参数编码 <span style="color: red;">*</span></label>
+                        <input type="text" class="form-input" placeholder="请输入参数编码（英文）" required>
+                    </div>
+                    <div class="form-item">
+                        <label class="form-label">参数码值 <span style="color: red;">*</span></label>
+                        <input type="text" class="form-input" placeholder="请输入参数码值（数值）" required>
+                    </div>
+                    <div class="form-item">
+                        <label class="form-label">状态 <span style="color: red;">*</span></label>
+                        <select class="form-select">
+                            <option value="enabled">启用</option>
+                            <option value="disabled">禁用</option>
+                        </select>
+                    </div>
+                    <div class="form-item" style="grid-column: 1 / -1;">
+                        <label class="form-label">描述</label>
+                        <input type="text" class="form-input" placeholder="请输入参数描述">
+                    </div>
+                    <div class="form-item" style="grid-column: 1 / -1;">
+                        <label class="form-label">标签（多个标签用逗号分隔）</label>
+                        <input type="text" class="form-input" placeholder="请输入标签，如：系统,基础">
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-default" onclick="closeAddLevel1Modal()">取消</button>
+                <button class="btn btn-primary">保存</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 编辑一级参数模态框 -->
+    <div id="editLevel1Modal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">编辑一级参数</div>
+                <div class="modal-close" onclick="closeEditLevel1Modal()">&times;</div>
+            </div>
+            <div class="modal-body">
+                <div class="filter-form">
+                    <div class="form-item">
+                        <label class="form-label">一级参数名称 <span style="color: red;">*</span></label>
+                        <input type="text" class="form-input" value="系统配置">
+                    </div>
+                    <div class="form-item">
+                        <label class="form-label">参数编码 <span style="color: red;">*</span></label>
+                        <input type="text" class="form-input" value="SYSTEM_CONFIG" disabled>
+                    </div>
+                    <div class="form-item">
+                        <label class="form-label">参数码值 <span style="color: red;">*</span></label>
+                        <input type="text" class="form-input" value="1001" disabled>
+                    </div>
+                    <div class="form-item">
+                        <label class="form-label">状态 <span style="color: red;">*</span></label>
+                        <select class="form-select">
+                            <option value="enabled" selected>启用</option>
+                            <option value="disabled">禁用</option>
+                        </select>
+                    </div>
+                    <div class="form-item" style="grid-column: 1 / -1;">
+                        <label class="form-label">描述</label>
+                        <input type="text" class="form-input" value="系统相关配置参数">
+                    </div>
+                    <div class="form-item" style="grid-column: 1 / -1;">
+                        <label class="form-label">标签（多个标签用逗号分隔）</label>
+                        <input type="text" class="form-input" value="系统">
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-default" onclick="closeEditLevel1Modal()">取消</button>
+                <button class="btn btn-primary">保存</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 新增二级参数模态框 -->
+    <div id="addLevel2Modal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">新增二级参数</div>
+                <div class="modal-close" onclick="closeAddLevel2Modal()">&times;</div>
+            </div>
+            <div class="modal-body">
+                <div class="filter-form">
+                    <div class="form-item">
+                        <label class="form-label">二级参数名称 <span style="color: red;">*</span></label>
+                        <input type="text" class="form-input" placeholder="请输入二级参数名称" required>
+                    </div>
+                    <div class="form-item">
+                        <label class="form-label">参数编码 <span style="color: red;">*</span></label>
+                        <input type="text" class="form-input" placeholder="请输入参数编码（英文）" required>
+                    </div>
+                    <div class="form-item">
+                        <label class="form-label">参数码值 <span style="color: red;">*</span></label>
+                        <input type="text" class="form-input" placeholder="请输入参数码值（数值）" required>
+                    </div>
+                    <div class="form-item">
+                        <label class="form-label">状态 <span style="color: red;">*</span></label>
+                        <select class="form-select">
+                            <option value="enabled">启用</option>
+                            <option value="disabled">禁用</option>
+                        </select>
+                    </div>
+                    <div class="form-item" style="grid-column: 1 / -1;">
+                        <label class="form-label">描述</label>
+                        <input type="text" class="form-input" placeholder="请输入参数描述">
+                    </div>
+                    <div class="form-item" style="grid-column: 1 / -1;">
+                        <label class="form-label">标签（多个标签用逗号分隔）</label>
+                        <input type="text" class="form-input" placeholder="请输入标签，如：系统,基础">
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-default" onclick="closeAddLevel2Modal()">取消</button>
+                <button class="btn btn-primary">保存</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 编辑二级参数模态框 -->
+    <div id="editLevel2Modal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">编辑二级参数</div>
+                <div class="modal-close" onclick="closeEditLevel2Modal()">&times;</div>
+            </div>
+            <div class="modal-body">
+                <div class="filter-form">
+                    <div class="form-item">
+                        <label class="form-label">二级参数名称 <span style="color: red;">*</span></label>
+                        <input type="text" class="form-input" value="系统名称">
+                    </div>
+                    <div class="form-item">
+                        <label class="form-label">参数编码 <span style="color: red;">*</span></label>
+                        <input type="text" class="form-input" value="SYSTEM_NAME" disabled>
+                    </div>
+                    <div class="form-item">
+                        <label class="form-label">参数码值 <span style="color: red;">*</span></label>
+                        <input type="text" class="form-input" value="100101" disabled>
+                    </div>
+                    <div class="form-item">
+                        <label class="form-label">状态 <span style="color: red;">*</span></label>
+                        <select class="form-select">
+                            <option value="enabled" selected>启用</option>
+                            <option value="disabled">禁用</option>
+                        </select>
+                    </div>
+                    <div class="form-item" style="grid-column: 1 / -1;">
+                        <label class="form-label">描述</label>
+                        <input type="text" class="form-input" value="系统显示名称">
+                    </div>
+                    <div class="form-item" style="grid-column: 1 / -1;">
+                        <label class="form-label">标签（多个标签用逗号分隔）</label>
+                        <input type="text" class="form-input" value="系统,基础">
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-default" onclick="closeEditLevel2Modal()">取消</button>
+                <button class="btn btn-primary">保存</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 删除确认模态框 -->
+    <div id="deleteModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">删除确认</div>
+                <div class="modal-close" onclick="closeDeleteModal()">&times;</div>
+            </div>
+            <div class="modal-body">
+                <div id="normalAlert" class="alert alert-warning">
+                    确定要删除该参数吗？
+                </div>
+                <div id="warningAlert" class="alert alert-danger" style="display: none;">
+                    该参数已被其他模块引用，无法删除！
+                </div>
+                <div id="refCheckResult" class="ref-check-result" style="display: none;">
+                    <div class="ref-check-title">引用检查结果</div>
+                    <div class="ref-item">
+                        <div class="ref-module">界面配置模块</div>
+                        <div class="ref-desc">在登录页面和首页引用了该参数</div>
+                    </div>
+                    <div class="ref-item">
+                        <div class="ref-module">邮件模板模块</div>
+                        <div class="ref-desc">在系统通知邮件中引用了该参数</div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-default" onclick="closeDeleteModal()">取消</button>
+                <div id="deleteBtnContainer">
+                    <button class="btn btn-danger" id="confirmDeleteBtn" onclick="checkReference()">确认删除</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // 显示一级参数页面
+        function showLevel1Page() {
+            document.getElementById('level1Page').classList.add('active');
+            document.getElementById('level2Page').classList.remove('active');
+        }
+        
+        // 显示二级参数页面
+        function showLevel2Page() {
+            document.getElementById('level1Page').classList.remove('active');
+            document.getElementById('level2Page').classList.add('active');
+        }
+        
+        // 打开新增一级参数模态框
+        function openAddLevel1Modal() {
+            document.getElementById('addLevel1Modal').style.display = 'flex';
+        }
+        
+        // 关闭新增一级参数模态框
+        function closeAddLevel1Modal() {
+            document.getElementById('addLevel1Modal').style.display = 'none';
+        }
+        
+        // 打开编辑一级参数模态框
+        function openEditLevel1Modal() {
+            document.getElementById('editLevel1Modal').style.display = 'flex';
+        }
+        
+        // 关闭编辑一级参数模态框
+        function closeEditLevel1Modal() {
+            document.getElementById('editLevel1Modal').style.display = 'none';
+        }
+        
+        // 打开新增二级参数模态框
+        function openAddLevel2Modal() {
+            document.getElementById('addLevel2Modal').style.display = 'flex';
+        }
+        
+        // 关闭新增二级参数模态框
+        function closeAddLevel2Modal() {
+            document.getElementById('addLevel2Modal').style.display = 'none';
+        }
+        
+        // 打开编辑二级参数模态框
+        function openEditLevel2Modal() {
+            document.getElementById('editLevel2Modal').style.display = 'flex';
+        }
+        
+        // 关闭编辑二级参数模态框
+        function closeEditLevel2Modal() {
+            document.getElementById('editLevel2Modal').style.display = 'none';
+        }
+        
+        // 检查二级参数引用
+        function checkLevel2Reference() {
+            openDeleteModal();
+        }
+        
+        // 打开删除确认模态框
+        function openDeleteModal() {
+            const refCheckResult = document.getElementById('refCheckResult');
+            const deleteBtnContainer = document.getElementById('deleteBtnContainer');
+            const normalAlert = document.getElementById('normalAlert');
+            const warningAlert = document.getElementById('warningAlert');
+            
+            // 重置弹窗状态
+            refCheckResult.style.display = 'none';
+            deleteBtnContainer.style.display = 'block';
+            normalAlert.style.display = 'block';
+            warningAlert.style.display = 'none';
+            
+            document.getElementById('deleteModal').style.display = 'flex';
+        }
+        
+        // 关闭删除确认模态框
+        function closeDeleteModal() {
+            document.getElementById('deleteModal').style.display = 'none';
+        }
+        
+        // 检查参数引用
+        function checkReference() {
+            // 模拟检查引用
+            const refCheckResult = document.getElementById('refCheckResult');
+            const deleteBtnContainer = document.getElementById('deleteBtnContainer');
+            const normalAlert = document.getElementById('normalAlert');
+            const warningAlert = document.getElementById('warningAlert');
+            
+            // 模拟有引用的情况
+            refCheckResult.style.display = 'block';
+            deleteBtnContainer.style.display = 'none';
+            normalAlert.style.display = 'none';
+            warningAlert.style.display = 'block';
+        }
+        
+        // 检查一级参数引用
+        function checkLevel1Reference() {
+            openDeleteModal();
+        }
+        
+        // 点击模态框外部关闭
+        window.addEventListener('click', function(event) {
+            const modals = ['addLevel1Modal', 'editLevel1Modal', 'addLevel2Modal', 'deleteModal'];
+            modals.forEach(modalId => {
+                const modal = document.getElementById(modalId);
+                if (event.target === modal) {
+                    modal.style.display = 'none';
+                }
+            });
+        });
+    </script>
+</body>
+</html>
